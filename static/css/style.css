@@ -1,0 +1,25 @@
+.movie-container {
+    margin-top: 20px;
+}
+.movie {
+    margin-bottom: 30px;
+}
+.movie img {
+    width: 100%;
+    height: auto;
+    border-radius: 5px;
+}
+.movie h2 {
+    margin-top: 10px;
+}
+.pagination {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    padding-left: 0;
+}
+.page-item .page-link {
+    margin-left: 4px;
+    margin-right: 4px;
+    border-radius: 5px;
+}

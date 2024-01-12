@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Search</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        .movie-container {
+            margin-top: 20px;
+        }
+        .movie {
+            margin-bottom: 30px;
+        }
+        .movie img {
+            width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .movie h2 {
+            margin-top: 10px;
+        }
+        .pagination {
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center my-4">Movie Search</h1>
+        <form method="GET" class="mb-5">
+            <div class="input-group mb-3">
+                <input type="text" name="search" value="{{ request.args.get('search', '') }}" class="form-control" placeholder="Enter movie title" aria-label="Movie title">
+                <div class="input-group-append">
+                    <button class="btn btn-outline-secondary" type="submit">Search</button>
+                </div>
+            </div>
+        </form>
+        
+        <div class="row movie-container">
+            {% for movie in movies.itertuples() %}
+                <div class="col-md-4 movie">
+                    <!-- Display movie poster from 'real_poster_path' -->
+                    <img src={{ movie.poster_url }} alt="{{ movie.title }} Poster">
+                    <h2>{{ movie.title }}</h2>
+                </div>
+            {% endfor %}
+        </div>
+        <!-- Pagination -->
+        <nav aria-label="Page navigation" style="display: flex; justify-content: center;">
+            <ul class="pagination">
+                {% if page > 1 %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('index', search=request.args.get('search', ''), page=page-1) }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+                {% set start_page = page|int %}
+                {% set end_page = [pages, start_page + 9]|min %}
+                {% for i in range(start_page, end_page + 1) %}
+                    <li class="page-item {% if i == page %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('index', search=request.args.get('search', ''), page=i) }}">{{ i }}</a>
+                    </li>
+                {% endfor %}
+                {% if page < pages %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('index', search=request.args.get('search', ''), page=page+1) }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>
