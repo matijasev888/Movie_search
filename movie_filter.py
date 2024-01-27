@@ -1,5 +1,5 @@
 import pandas as pd
-from transformers import AutoTokenizer, AutoModel
+from transformers import AutoTokenizer, AutoModel, AutoModelForSequenceClassification, pipeline, AutoConfig
 import numpy as np
 import spacy
 import re
@@ -80,3 +80,17 @@ def filter(description, encoded_movies=encoded_movies, top_n=20):
     similar_movies['score'] = np.array(new_scores)[top_indices]
 
     return similar_movies
+
+def get_model():
+    config = AutoConfig.from_pretrained('./model/config.json')
+    loaded_model = AutoModelForSequenceClassification.from_pretrained('./model', config=config)
+    loaded_tokenizer = AutoTokenizer.from_pretrained('./model', local_files_only=True)
+
+    classifier = pipeline('text-classification', model=loaded_model, tokenizer=loaded_tokenizer)
+    return classifier
+
+def predict_genre(classifier, text):
+
+    predictions = classifier(text)
+    #print(predictions[0]['label'])
+    return predictions[0]['label']

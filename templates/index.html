@@ -36,6 +36,12 @@
                 </div>
             </div>
         </form>
+
+        <div class="mb-3">
+            {% if genre_prediction %}
+                <p style="font-size: 15;">Most probable genre is: {{ genre_prediction }}</p>
+            {% endif %}
+        </div>        
         
         <div class="row movie-container">
             {% for movie in movies.itertuples() %}

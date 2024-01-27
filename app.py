@@ -2,6 +2,7 @@ from flask import Flask, render_template, request
 import pandas as pd
 import json
 from movie_filter import filter  # Import the filter function from filter.py
+from movie_filter import predict_genre, get_model
 
 app = Flask(__name__)
 
@@ -14,8 +15,12 @@ def index():
     per_page = 20  # Adjust as needed
     query = request.args.get('search', '')
 
+    classifier = get_model()
+
     if query:
         filtered_movies = filter(query)
+        genre_prediction = predict_genre(classifier, query)
+
     else:
         filtered_movies = movies_df
 
@@ -29,7 +34,7 @@ def index():
 
     movies_to_display = filtered_movies.iloc[start:end]
 
-    return render_template('index.html', movies=movies_to_display, query=query, page=page, pages=pages)
+    return render_template('index.html', movies=movies_to_display, query=query, page=page, pages=pages, genre_prediction=genre_prediction)
 
 if __name__ == '__main__':
     app.run(debug=True)
