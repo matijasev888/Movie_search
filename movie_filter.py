@@ -56,7 +56,7 @@ def calculate_movie_score(extracted_names, extracted_year, movie_names, movie_ye
     return score
 
 # Function to find similar movies
-def filter(description, encoded_movies=encoded_movies, top_n=20):
+def filter(description, encoded_movies=encoded_movies, top_n=200):
     preprocessed_description = spacy_lemmatize_text(description.lower())
     extracted_names = extract_human_names(preprocessed_description)
     extracted_years = extract_years(preprocessed_description)

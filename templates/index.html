@@ -23,6 +23,11 @@
         .pagination {
             justify-content: center;
         }
+        #suggestions {
+            position: absolute;
+            z-index: 1000;
+            width: calc(100% - 48px); /* Adjust based on your input field size */
+        }
     </style>
 </head>
 <body>
@@ -30,29 +35,35 @@
         <h1 class="text-center my-4">Movie Search</h1>
         <form method="GET" class="mb-5">
             <div class="input-group mb-3">
-                <input type="text" name="search" value="{{ request.args.get('search', '') }}" class="form-control" placeholder="Enter movie title" aria-label="Movie title">
+                <input type="text" name="search" id="searchBar" value="{{ request.args.get('search', '') }}" class="form-control" placeholder="Enter movie title" aria-label="Movie title">
                 <div class="input-group-append">
                     <button class="btn btn-outline-secondary" type="submit">Search</button>
                 </div>
             </div>
         </form>
 
+        <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="toggleSuggestions" checked>
+            <label class="form-check-label" for="toggleSuggestions">Enable Suggestions</label>
+        </div>
+
+        <div id="suggestions" class="list-group"></div>
+
         <div class="mb-3">
             {% if genre_prediction %}
-                <p style="font-size: 15;">Most probable genre is: {{ genre_prediction }}</p>
+                <p>Most probable genre is: {{ genre_prediction }}</p>
             {% endif %}
-        </div>        
-        
+        </div>
+
         <div class="row movie-container">
             {% for movie in movies.itertuples() %}
                 <div class="col-md-4 movie">
-                    <!-- Display movie poster from 'real_poster_path' -->
                     <img src={{ movie.poster_url }} alt="{{ movie.title }} Poster">
                     <h2>{{ movie.title }}</h2>
                 </div>
             {% endfor %}
         </div>
-        <!-- Pagination -->
+
         <nav aria-label="Page navigation" style="display: flex; justify-content: center;">
             <ul class="pagination">
                 {% if page > 1 %}
@@ -62,8 +73,6 @@
                         </a>
                     </li>
                 {% endif %}
-                {% set start_page = page|int %}
-                {% set end_page = [pages, start_page + 9]|min %}
                 {% for i in range(start_page, end_page + 1) %}
                     <li class="page-item {% if i == page %}active{% endif %}">
                         <a class="page-link" href="{{ url_for('index', search=request.args.get('search', ''), page=i) }}">{{ i }}</a>
@@ -78,11 +87,89 @@
                 {% endif %}
             </ul>
         </nav>
-
     </div>
 
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script>
+        var suggestionWindow = null;
+        
+        document.getElementById('searchBar').addEventListener('input', updateSuggestions);
+        document.getElementById('searchBar').addEventListener('click', checkTextSelection);
+        document.getElementById('toggleSuggestions').addEventListener('change', clearSuggestions);
+        
+        function getSelectedText(input) {
+            var start = input.selectionStart;
+            var end = input.selectionEnd;
+            return input.value.substring(start, end);
+        }
+        
+        function checkTextSelection() {
+            var inputField = document.getElementById('searchBar');
+            if (getSelectedText(inputField).length > 0) {
+                updateSuggestions();
+            }
+        }
+        
+        function updateSuggestions() {
+            if (!document.getElementById('toggleSuggestions').checked) {
+                return;
+            }
+            var inputField = document.getElementById('searchBar');
+            var selectedText = getSelectedText(inputField);
+            if (selectedText.length > 2) {
+                fetch(`/suggest?query=${selectedText}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        openSuggestionWindow(data);
+                    });
+            } else {
+                closeSuggestionWindow();
+            }
+        }
+        
+        function openSuggestionWindow(suggestions) {
+            if (!suggestionWindow || suggestionWindow.closed) {
+                suggestionWindow = window.open("", "Suggestions", "width=300,height=400,scrollbars=yes");
+            }
+
+            var style = `
+                <style>
+                body { font-family: Arial, sans-serif; margin: 0; padding: 10px; background-color: #f8f9fa; }
+                .suggestion-item { padding: 10px; border-bottom: 1px solid #ddd; cursor: pointer; }
+                .suggestion-item:hover { background-color: #e9ecef; }
+                </style>
+            `;
+
+            var suggestionHTML = suggestions.map(word => 
+                `<div class="suggestion-item" onclick="window.opener.applySuggestion('${word}')">${word}</div>`
+            ).join('');
+
+            suggestionWindow.document.head.innerHTML = style;
+            suggestionWindow.document.body.innerHTML = suggestionHTML;
+        }
+        
+        function applySuggestion(word) {
+            var inputField = document.getElementById('searchBar');
+            var fullText = inputField.value;
+            var selectedText = getSelectedText(inputField);
+            var start = inputField.selectionStart;
+            var end = inputField.selectionEnd;
+            inputField.value = fullText.substring(0, start) + word + fullText.substring(end);
+            closeSuggestionWindow();
+        }
+        
+        function closeSuggestionWindow() {
+            if (suggestionWindow) {
+                suggestionWindow.close();
+            }
+        }
+        
+        function clearSuggestions() {
+            closeSuggestionWindow();
+        }
+        </script>
+        
 </body>
 </html>
