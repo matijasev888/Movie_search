@@ -32,10 +32,10 @@
 </head>
 <body>
     <div class="container">
-        <h1 class="text-center my-4">Movie Search</h1>
+        <h1 class="text-center my-4">FilmFinder</h1>
         <form method="GET" class="mb-5">
             <div class="input-group mb-3">
-                <input type="text" name="search" id="searchBar" value="{{ request.args.get('search', '') }}" class="form-control" placeholder="Enter movie title" aria-label="Movie title">
+                <input type="text" name="search" id="searchBar" value="{{ request.args.get('search', '') }}" class="form-control" placeholder="Enter movie description" aria-label="Movie description">
                 <div class="input-group-append">
                     <button class="btn btn-outline-secondary" type="submit">Search</button>
                 </div>
@@ -43,7 +43,7 @@
         </form>
 
         <div class="form-check form-switch mb-3">
-            <input class="form-check-input" type="checkbox" id="toggleSuggestions" checked>
+            <input class="form-check-input" type="checkbox" id="toggleSuggestions">
             <label class="form-check-label" for="toggleSuggestions">Enable Suggestions</label>
         </div>
 

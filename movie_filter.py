@@ -56,7 +56,7 @@ def calculate_movie_score(extracted_names, extracted_year, movie_names, movie_ye
     return score
 
 # Function to find similar movies
-def filter(description, encoded_movies=encoded_movies, top_n=200):
+def filter(description, encoded_movies=encoded_movies, top_n=200, genre1='null', genre2='null', genre3='null', genre_score1 = 0, genre_score2 = 0, genre_score3 = 0):
     preprocessed_description = spacy_lemmatize_text(description.lower())
     extracted_names = extract_human_names(preprocessed_description)
     extracted_years = extract_years(preprocessed_description)
@@ -66,13 +66,22 @@ def filter(description, encoded_movies=encoded_movies, top_n=200):
 
     new_scores = []
     for index, row in movie_data.iterrows():
+        
         movie_names = row['names'].split(',')  # Assuming names are comma-separated
         movie_year = str(row['year'])
+        genres = row['genres'].lower().split(' ')
+        pom_score = 0
+        if genre1 in genres:
+            pom_score += genre_score1
+        if genre2 in genres:
+            pom_score += genre_score2
+        if genre3 in genres:
+            pom_score += genre_score3
 
         # Use the first extracted year for simplicity
         extracted_year = extracted_years[0] if extracted_years else 0
 
-        score = calculate_movie_score(extracted_names, extracted_year, movie_names, movie_year, cosine_similarities[index])
+        score = calculate_movie_score(extracted_names, extracted_year, movie_names, movie_year, cosine_similarities[index]) * (1+pom_score**3)
         new_scores.append(score)
 
     top_indices = np.argsort(new_scores)[-top_n:][::-1]
@@ -90,7 +99,5 @@ def get_model():
     return classifier
 
 def predict_genre(classifier, text):
-
-    predictions = classifier(text)
-    #print(predictions[0]['label'])
-    return predictions[0]['label']
+    predictions = classifier(text, top_k = 3)
+    return predictions

@@ -15,14 +15,15 @@ word_matcher = WordMatcher('words.csv')
 def index():
     page = request.args.get('page', 1, type=int)
     per_page = 20
-    query = request.args.get('search', '')
+    query = request.args.get('search', '').lower()
     genre_prediction = None
 
     classifier = get_model()
 
     if query:
-        filtered_movies = filter(query)
-        genre_prediction = predict_genre(classifier, query)
+        pom = predict_genre(classifier, query)
+        filtered_movies = filter(query, genre1 = pom[0]['label'], genre2 = pom[1]['label'], genre3 = pom[2]['label'], genre_score1 = pom[0]['score'], genre_score2 = pom[1]['score'], genre_score3 = pom[2]['score'])
+        genre_prediction = pom[0]['label'] + ' ' + pom[1]['label']+ ' ' + pom[2]['label']
     else:
         filtered_movies = movies_df
 
@@ -43,7 +44,7 @@ def index():
 
 @app.route('/suggest', methods=['GET'])
 def suggest():
-    query = request.args.get('query', '')
+    query = request.args.get('query', '').lower()
     suggestions = word_matcher.find_close_matches(query, num_matches=5)
     return jsonify(suggestions)
 
